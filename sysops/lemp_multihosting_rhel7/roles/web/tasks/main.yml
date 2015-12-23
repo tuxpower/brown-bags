@@ -1,0 +1,11 @@
+---
+- name: Add group "wheel"
+  group: name=wheel
+
+- name: Add user "foobar"
+  user: name=foobar group=wheel comment="My sFTP account"
+
+- name: Start php-fpm service
+  service: name=php-fpm state=started enabled=yes
+
+- include: composer.yml

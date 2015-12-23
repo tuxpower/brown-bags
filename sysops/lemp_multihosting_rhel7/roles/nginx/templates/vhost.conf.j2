@@ -1,0 +1,42 @@
+#  _____________________________________
+# /                                     \
+# | This file was deployed by Ansible.  |
+# |  Feel free to modify it as needed.  |
+# \_____________________________________/
+#       \   ^__^
+#        \  (oo)\_______
+#           (__)\       )\/\
+#               ||----w |
+#               ||     ||
+
+# {{ ansible_managed }}
+
+server {
+        listen      80;
+        server_name  {{ item.domain }} www.{{ item.domain }};
+        root /var/www/html/{{ item.domain }};
+
+	access_log /var/log/nginx/{{ item.domain }}.log;
+ 
+	client_max_body_size 64M;
+ 
+        location / {
+                index index.php index.html index.htm;
+                try_files $uri $uri/ /index.php?$args;
+        }
+ 
+        location ~* \.(gif|jpg|jpeg|png|css|js)$ {
+                expires max;
+        }
+ 
+        location ~ \.php$ {
+                try_files $uri =404;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_index index.php;
+                fastcgi_pass  unix:/var/run/php-fpm/{{ item.domain }}.sock;
+                fastcgi_param   SCRIPT_FILENAME
+                                $document_root$fastcgi_script_name;
+                include       fastcgi_params;
+        }
+}
+

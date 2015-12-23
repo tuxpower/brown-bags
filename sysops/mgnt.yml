@@ -1,0 +1,34 @@
+---
+- hosts: all
+  sudo: yes
+  gather_facts: no
+  remote_user: root 
+
+  tasks:
+
+  - name: add user rack
+    user: name=rack
+          comment="Rackspace Account" shell=/bin/bash
+
+  - name: create staging key pair
+    user: name=rack
+          generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/staging_rsa
+
+  - name: create production key pair
+    user: name=rack
+          generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/production_rsa
+
+  - name: create sudoers
+    template:
+      src: sudoers.d.j2
+      dest: "/etc/sudoers.d/80-ansible-users"
+      mode: 0440
+      owner: root
+      group: root
+      validate: "/usr/sbin/visudo -cf %s"
+
+  - name: install ssh key
+    authorized_key: user=rack 
+                    key="{{ lookup('file', '/home/jgaspar/.ssh/id_jgasparcloud.pub') }}" 
+                    state=present
+

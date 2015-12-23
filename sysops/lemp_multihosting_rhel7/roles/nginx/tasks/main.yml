@@ -1,0 +1,18 @@
+---
+- name: install nginx
+  yum: name=nginx state=present
+
+- name: copy default nginx configuration
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
+
+- name: write our /etc/nginx/conf.d/server_hostname.conf
+  template: src=vhost.conf.j2 dest=/etc/nginx/conf.d/{{ item.domain }}.conf
+  with_items: "{{ domains }}"
+  notify: restart nginx
+
+- name: creates root directory
+  file: path=/var/www/html/{{ item.domain }} state=directory mode=0755
+  with_items: "{{ domains }}"
+
+- name: insert firewalld rule
+  firewalld: port={{ nginx_port }}/tcp permanent=true state=enabled immediate=yes

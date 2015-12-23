@@ -1,0 +1,26 @@
+#  _____________________________________
+# /                                     \
+# | This file was deployed by Ansible.  |
+# |  Feel free to modify it as needed.  |
+# \_____________________________________/
+#       \   ^__^
+#        \  (oo)\_______
+#           (__)\       )\/\
+#               ||----w |
+#               ||     ||
+
+# {{ ansible_managed }}
+
+[{{ item.domain }}]
+listen = /var/run/php-fpm/{{ item.domain }}.sock
+listen.owner = nginx
+listen.group = nginx
+listen.mode = 0660
+user = apache 
+group = apache
+pm = dynamic
+pm.max_children = 10
+pm.start_servers = 1
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+pm.max_requests = 500

@@ -1,0 +1,80 @@
+- name: Build production environment
+  gather_facts: no  
+  hosts: localhost
+  connection: local
+  tasks:
+
+    - name: upload production key pair
+      local_action:
+        module: rax_keypair
+        credentials: ~/.raxpub
+        name: production_key
+        public_key: "{{ lookup('file', '/home/rack/.ssh/production_rsa.pub') }}"
+        region: LON
+
+    - name: Create load balancer
+      local_action:
+        module: rax_clb
+        credentials: ~/.raxpub
+        name: production
+        port: 80
+        protocol: HTTP
+        type: PUBLIC 
+        timeout: 30
+        region: LON
+        wait: yes
+        state: present
+        meta:
+          app: mywebsiteinthecloud 
+      register: clb
+
+    - name: Create cloud servers
+      local_action:
+        module: rax
+        credentials: ~/.raxpub
+        key_name: production_key
+        name: web%02d.mywebsiteinthecloud.com
+        flavor: performance1-1
+        image: 6595f1b7-e825-4bd2-addc-c7b1c803a37f
+        networks:
+          - public
+          - private
+        region: LON
+        state: present
+        count: 2
+        exact_count: yes
+        group: production 
+        wait: yes
+      register: prod
+
+    - name: Add servers to web host group
+      local_action:
+        module: add_host
+        hostname: "{{ item.name }}"
+        ansible_host: "{{ item.rax_accessipv4 }}"
+        groups: production
+      with_items: prod.success
+
+    - name: Add nodes to production load balancer
+      local_action:
+        module: rax_clb_nodes
+        load_balancer_id: "{{ clb.balancer.id }}" 
+        address: "{{ item.rax_networks.private|first }}" 
+        port: 80
+        condition: enabled
+        type: primary
+        wait: yes
+        credentials: ~/.raxpub
+        region: LON
+      with_items: prod.success
+
+    - name: Add DNS records for production servers
+      local_action:
+        module: rax_dns_record
+        credentials: ~/.raxpub
+        domain: mywebsiteinthecloud.com
+        name: "{{ item.name }}"
+        data: "{{ item.rax_accessipv4 }}"
+        type: A
+        ttl: 300
+      with_items: prod.success

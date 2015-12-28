@@ -1,18 +1,11 @@
 ---
 
-# common
 - hosts: all
   become_user: root
   gather_facts: no
 
   roles:
     - common
-
-# staging 
-- hosts: staging
-  become_user: root 
-
-  roles:
     - nginx
     - php-fpm
     - web

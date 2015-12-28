@@ -1,0 +1,20 @@
+# Here are variables related to the play
+
+lbport: 80
+lbproto: HTTP
+lbtype: PUBLIC
+lbtimeout: 30
+lbwait: yes
+
+nodeport: 80
+nodecondition: enabled
+nodetype: primary
+
+csflavor: performance1-1
+csimage: 6595f1b7-e825-4bd2-addc-c7b1c803a37f
+
+dnsttl: 300
+
+domain: mywebsiteinthecloud.com 
+region: LON
+credentials: ~/.raxpub

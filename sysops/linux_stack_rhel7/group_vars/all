@@ -3,7 +3,6 @@
 
 domains:
   - domain: mywebsiteinthecloud.com
-  - domain: example.com
 
 # Nginx settings
 nginx_port: 80 

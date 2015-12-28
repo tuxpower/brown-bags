@@ -14,5 +14,10 @@
   file: path=/var/www/html/{{ item.domain }} state=directory mode=0755
   with_items: "{{ domains }}"
 
+- name: deploy website content
+  git: repo=git@josegaspar.git.beanstalkapp.com:/josegaspar/mywebsiteinthecloud.git
+       dest=/var/www/html/mywebsiteinthecloud.com/
+       accept_hostkey=yes
+
 - name: insert firewalld rule
   firewalld: port={{ nginx_port }}/tcp permanent=true state=enabled immediate=yes

@@ -1,0 +1,14 @@
+---
+- name: install git
+  yum: name=git state=installed update_cache=yes
+
+- name: copy private staging SSH key
+  copy: src=/home/rack/.ssh/staging_rsa dest=/root/.ssh/id_rsa owner=root group=root mode=600
+
+- name: copy public staging SSH key
+  copy: src=/home/rack/.ssh/staging_rsa.pub dest=/root/.ssh/id_rsa.pub owner=root group=root mode=600
+
+- name: install repository-wide deployment key
+  authorized_key: user=root
+        	  key="{{ lookup('file', '/home/rack/repository.pub') }}" 
+                  state=present

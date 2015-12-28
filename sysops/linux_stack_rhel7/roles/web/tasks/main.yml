@@ -8,4 +8,4 @@
 - name: Start php-fpm service
   service: name=php-fpm state=started enabled=yes
 
-- include: composer.yml
+#- include: composer.yml

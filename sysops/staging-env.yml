@@ -7,39 +7,39 @@
     - name: upload staging key pair
       local_action:
         module: rax_keypair
-        credentials: ~/.raxpub
+        credentials: "{{ credentials }}"
         name: staging_key
         public_key: "{{ lookup('file', '/home/rack/.ssh/staging_rsa.pub') }}"
-        region: LON
+        region: "{{ region }}"
 
     - name: Create load balancer
       local_action:
         module: rax_clb
-        credentials: ~/.raxpub
+        credentials: "{{ credentials }}"
         name: staging
-        port: 80
-        protocol: HTTP
-        type: PUBLIC 
-        timeout: 30
-        region: LON
-        wait: yes
+        port: "{{ lbport }}"
+        protocol: "{{ lbproto }}"
+        type: "{{ lbtype }}" 
+        timeout: "{{ lbtimeout }}"
+        region: "{{ region }}"
+        wait: "{{ lbwait }}"
         state: present
         meta:
-          app: mywebsiteinthecloud 
+          app: "{{ domain }}" 
       register: clb
 
     - name: Create cloud servers
       local_action:
         module: rax
-        credentials: ~/.raxpub
+        credentials: "{{ credentials }}"
         key_name: staging_key
         name: stag%02d.mywebsiteinthecloud.com
-        flavor: performance1-1
-        image: 6595f1b7-e825-4bd2-addc-c7b1c803a37f
+        flavor: "{{ csflavor }}" 
+        image: "{{ csimage }}" 
         networks:
           - public
           - private
-        region: LON
+        region: "{{ region }}"
         state: present
         count: 2
         exact_count: yes
@@ -60,21 +60,32 @@
         module: rax_clb_nodes
         load_balancer_id: "{{ clb.balancer.id }}" 
         address: "{{ item.rax_networks.private|first }}" 
-        port: 80
-        condition: enabled
-        type: primary
+        port: "{{ nodeport }}"
+        condition: "{{ nodecondition }}"
+        type: "{{ nodetype }}"
         wait: yes
-        credentials: ~/.raxpub
-        region: LON
+        credentials: "{{ credentials }}"
+        region: "{{ region }}"
       with_items: stag.success
 
     - name: Add DNS records for staging servers
       local_action:
         module: rax_dns_record
-        credentials: ~/.raxpub
-        domain: mywebsiteinthecloud.com
+        credentials: "{{ credentials }}"
+        domain: "{{ domain }}" 
         name: "{{ item.name }}"
         data: "{{ item.rax_accessipv4 }}"
         type: A
-        ttl: 300
+        ttl: "{{ dnsttl }}"
       with_items: stag.success
+
+    - name: Add DNS record for staging environment
+      local_action:
+        module: rax_dns_record
+        credentials: "{{ credentials }}"
+        domain: "{{ domain }}" 
+        name: staging.mywebsiteinthecloud.com
+        data: "{{ clb.balancer.virtual_ips[0].address }}"
+        type: A
+        ttl: "{{ dnsttl }}"
+

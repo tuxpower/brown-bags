@@ -17,7 +17,7 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'rackspace'
 	node.vm.synced_folder "/opt/mgnt/", "/vagrant/", create: true
 	node.vm.boot_timeout = 10
       	node.vm.provider "rackspace" do |rs|
-    	  rs.username        = <USERNAME>
+    	  rs.username        = <USERNAME> 
     	  rs.api_key         = <USERKEY> 
     	  rs.rackspace_region= "LON"
     	  rs.flavor          = /4 GB General Purpose v1/

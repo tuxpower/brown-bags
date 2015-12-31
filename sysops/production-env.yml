@@ -28,6 +28,23 @@
           app: "{{ domain }}" 
       register: clb
 
+    - name: Get authentication token
+      shell: curl -s https://identity.api.rackspacecloud.com/v2.0/tokens -X POST
+             -d '{"auth":{"RAX-KSKEY:apiKeyCredentials":{"username":"{{ raxuser }}", "apiKey":"{{ raxkey }}"}}}'
+             -H "Content-Type:application/json"
+      register: raxauth
+
+    - name: Enable SSL termination and add SSL certificate
+      shell: curl -s -X PUT -H "X-Auth-Token:{{ (raxauth.stdout|from_json).access.token.id }}" -H "Content-Type:application/json" -d @"{{ ssljson }}"
+             https://{{ region }}.loadbalancers.api.rackspacecloud.com/v1.0/{{ raxid }}/loadbalancers/{{ clb.balancer.id }}/ssltermination
+
+    - pause: seconds=25
+
+    - name: Enable HTTPS redirect on Load Balancer
+      shell: curl -s -X PUT -H "X-Auth-Token:{{ (raxauth.stdout|from_json).access.token.id }}" -H "Content-Type:application/json" 
+             -d '{"loadBalancer":{"name":"production", "protocol":"{{ lbproto }}", "httpsRedirect":true}}'
+             https://{{ region }}.loadbalancers.api.rackspacecloud.com/v1.0/{{ raxid }}/loadbalancers/{{ clb.balancer.id }}
+
     - name: Create cloud servers
       local_action:
         module: rax

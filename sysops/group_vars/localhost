@@ -18,3 +18,7 @@ dnsttl: 300
 domain: mywebsiteinthecloud.com 
 region: LON
 credentials: ~/.raxpub
+raxuser: 
+raxkey: 
+raxid: 
+ssljson: certs/sslterm.json 
